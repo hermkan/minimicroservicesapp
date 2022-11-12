@@ -1,6 +1,8 @@
-const express  = require('express')
+const express = require('express')
 const {randomBytes} = require('crypto')
 const cors = require('cors')
+
+const axios = require('axios')
 const app = express()
 app.use(express.json())
 app.use(cors())
@@ -10,19 +12,27 @@ function getPosts (req, res) {
  res.send(posts)
 }
 
-function createPost (req, res, next) {
+async function createPost  (req, res) {
  const id  =  randomBytes(4).toString('hex')
  const {title} =  req.body
  posts[id] = {id, title}
- res.status(201).send( posts[id])
+ await axios.post('http://localhost:4005/events', {type: 'PostCreated', data:{
+  id, title
+ }})
+ res.status(201).send( posts[id]) 
 }
 
+function eventHandler (req, res,) {
+console.log('Received event', req.body.type);
+res.send({})
+}
+app.get('/posts', getPosts)
+app.post('/posts', createPost)
+app.post('/events', eventHandler)
 
-app.get("/posts", getPosts)
-app.post("/posts", createPost)
 
 function activateServer(){
- console.log("Server activated!, listening on PORT 4000")
+ console.log("Post service activated!, listening on PORT 4000")
 }
 const PORT = 4000
 
