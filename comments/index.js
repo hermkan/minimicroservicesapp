@@ -24,16 +24,19 @@ async function createComment (req, res) {
  res.status(201).send(comments)
 }
 
-function eventHandler (req, res) {
+async function eventHandler (req, res) {
 console.log('Received event', req.body.type);
 const {type, data} =  req.body
 if(type === 'commentModerated'){
- const {postId, id, status} = data
+ const {postId, id, content, status} = data
  const comments = commentsByPostId[postId]
  const comment = comments.find(comment => {
   return comment.id === id
  })
  comment.status = status
+ await axios.post('http://localhost:4005/events', {type:'commentUpdated', data:{
+  id, content, status, postId
+ }})
 }
 res.send({})
 }
